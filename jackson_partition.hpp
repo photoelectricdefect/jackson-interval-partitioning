@@ -41,44 +41,43 @@ class jackson_partition {
       std::vector<double> opt(N);
       opt[0]=0;
 
-      //have not tested minimization, only required maximization as of yet
       if(minimize) {
         for (size_t i=1;i<=N;i++)
         {
-          double min_cost=DBL_MAX;
-          int idx_change=-1;
+          double opt_cost=DBL_MAX;
+          int idx_change=0;
 
           for (size_t j=1;j<=i;j++)
           {
             double cost=opt[j-1]+fn_fit(data,j,i,ptr);
 
-            if(cost<min_cost) { 
-              min_cost=cost;
+            if(cost<opt_cost) {
+              opt_cost=cost;
               idx_change=j;
             }
           }
 
-          opt[i]=min_cost;
+          opt[i]=opt_cost;
           lastchange[i]=idx_change;
         }
       }
       else {
         for (size_t i=1;i<=N;i++)
         {
-          double max_cost=-DBL_MAX;          
-          int idx_change=-1;
+          double opt_cost=-DBL_MAX;
+          int idx_change=0;
 
           for (size_t j=1;j<=i;j++)
           {
             double cost=opt[j-1]+fn_fit(data,j,i,ptr);
 
-            if(cost>max_cost) { 
-              max_cost=cost;
+            if(cost>opt_cost) {
+              opt_cost=cost;
               idx_change=j;
             }
           }
 
-          opt[i]=max_cost;
+          opt[i]=opt_cost;
           lastchange[i]=idx_change;
         }
       }
@@ -89,10 +88,11 @@ class jackson_partition {
       do {
         p--;
         p=lastchange[p];
-        
         partitions.push_back(p);
       } while(p>0);
     
+      std::reverse(partitions.begin(),partitions.end());
+
       return partitions;
     }
 }; 
