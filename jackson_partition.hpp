@@ -31,59 +31,36 @@ class jackson_partition {
      * @note   
      * @param  data: Datapoint vector
      * @param  fn_fit: Fitness function
-     * @param  minimize: If set to true minimizes fitness function, otherwise it is maximized
      * @param  ptr: Pointer for passing extra data
      * @retval Returns indexes of partitions in data vector
      */
-    std::vector<int> partition(std::vector<T> data,fitness_function<T> fn_fit,bool minimize=false,void* ptr=nullptr) {
+    std::vector<int> partition(std::vector<T> data,fitness_function<T> fn_fit,void* ptr=nullptr) {
       int N=data.size();
       std::vector<int> lastchange(N);
-      std::vector<double> opt(N);
+      std::vector<double> opt(N+1);
       opt[0]=0;
 
-      if(minimize) {
-        for (size_t i=1;i<=N;i++)
+      for (size_t i=0;i<N;i++)
+      {
+        int idx_change=0;
+        double opt_cost=-DBL_MAX;
+
+        for (size_t j=0;j<=i;j++)
         {
-          double opt_cost=DBL_MAX;
-          int idx_change=0;
+          double cost=opt[j]+fn_fit(data,j,i,ptr);
 
-          for (size_t j=1;j<=i;j++)
-          {
-            double cost=opt[j-1]+fn_fit(data,j,i,ptr);
-
-            if(cost<opt_cost) {
-              opt_cost=cost;
-              idx_change=j;
-            }
+          if(cost>opt_cost) {
+            opt_cost=cost;
+            idx_change=j;
           }
-
-          opt[i]=opt_cost;
-          lastchange[i]=idx_change;
         }
-      }
-      else {
-        for (size_t i=1;i<=N;i++)
-        {
-          double opt_cost=-DBL_MAX;
-          int idx_change=0;
 
-          for (size_t j=1;j<=i;j++)
-          {
-            double cost=opt[j-1]+fn_fit(data,j,i,ptr);
-
-            if(cost>opt_cost) {
-              opt_cost=cost;
-              idx_change=j;
-            }
-          }
-
-          opt[i]=opt_cost;
-          lastchange[i]=idx_change;
-        }
+        opt[i+1]=opt_cost;
+        lastchange[i]=idx_change;
       }
 
       std::vector<int> partitions;
-      int p=N+1;
+      int p=N;
 
       do {
         p--;
